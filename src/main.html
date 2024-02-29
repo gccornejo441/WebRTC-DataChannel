@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Test</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    <h1>WebRTC Test</h1>
+
+    <button id="create-offer">Create Offer</button>
+    <textarea id="offer-sdp" placeholder="Paste Offer SDP here"></textarea>
+
+    <button id="create-answer">Create Answer</button>
+    <textarea id="answer-sdp" placeholder="Paste Answer SDP here"></textarea>
+
+    <button id="add-answer">Set Answer</button>
+
+    <input type="text" id="message" placeholder="Message text" disabled />
+    <button id="sendButton" name="sendButton" disabled>Send Message</button>
+
+    <div id="receivebox">
+        <p>Messages received:</p>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
