@@ -1,7 +1,7 @@
 let peerConnection;
 
-var sendChannel = null; // RTCDataChannel for the local (sender)
-var receiveChannel = null; // RTCDataChannel for the remote (receiver)
+var sendChannel = null;
+var receiveChannel = null;
 
 var sendButton = null;
 var messageInputBox = null;
@@ -19,7 +19,6 @@ function startup() {
     messageInputBox = document.getElementById('message');
     receiveBox = document.getElementById('receivebox');
 
-    // Set event listeners for user interface widgets
     sendButton.addEventListener('click', sendMessage, false);
 }
 
@@ -33,23 +32,26 @@ function setupPeerConnection() {
         }
     };
 
-    // Create the data channel and establish its event listeners
     peerConnection.ondatachannel = event => {
         receiveChannel = event.channel;
-        receiveChannel.onmessage = handleReceiveMessage;
-        receiveChannel.onopen = handleReceiveChannelStatusChange;
-        receiveChannel.onclose = handleReceiveChannelStatusChange;
+        sendChannel = receiveChannel; 
+        setupDataChannelEventHandlers(sendChannel); 
     };
 }
 
-// Button trigger for creating an offer
+function setupDataChannelEventHandlers(channel) {
+    channel.onopen = () => handleSendChannelStatusChange(channel);
+    channel.onclose = () => handleSendChannelStatusChange(channel);
+    channel.onmessage = handleReceiveMessage;
+    channel.onerror = () => alert("Error! on the data channel.");
+}
+
+
 let createOffer = async () => {
     setupPeerConnection();
 
     sendChannel = peerConnection.createDataChannel("chat");
-    sendChannel.onopen = handleSendChannelStatusChange;
-    sendChannel.onclose = handleSendChannelStatusChange;
-    sendChannel.onerror = handleSendChannelStatusChange;
+    setupDataChannelEventHandlers(sendChannel);
 
     let offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
@@ -57,7 +59,6 @@ let createOffer = async () => {
     document.getElementById("offer-sdp").value = JSON.stringify(offer);
 }
 
-// Button trigger for creating an answer
 let createAnswer = async () => {
     setupPeerConnection();
 
@@ -70,14 +71,20 @@ let createAnswer = async () => {
     document.getElementById("answer-sdp").value = JSON.stringify(answer);
 }
 
-// Button trigger for setting the answer SDP
 let setAnswer = async () => {
     let answer = JSON.parse(document.getElementById("answer-sdp").value);
     await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 }
 
-function handleSendChannelStatusChange() {
-    if (sendChannel.readyState === "open") {
+function handleSendChannelStatusChange(channel) {
+    peerConnection.ondatachannel = event => {
+        receiveChannel = event.channel;
+        sendChannel = receiveChannel;
+        setupDataChannelEventHandlers(sendChannel);
+    };
+    console.log(`${channel.label} channel state is: ${channel.readyState}`);
+
+    if (channel.readyState === "open") {
         messageInputBox.disabled = false;
         sendButton.disabled = false;
         messageInputBox.focus();
@@ -85,10 +92,6 @@ function handleSendChannelStatusChange() {
         messageInputBox.disabled = true;
         sendButton.disabled = true;
     }
-}
-
-function handleReceiveChannelStatusChange() {
-    // Optionally implement similar logic for receiveChannel if needed
 }
 
 function handleReceiveMessage(event) {
@@ -99,11 +102,15 @@ function handleReceiveMessage(event) {
 }
 
 function sendMessage() {
-    const message = messageInputBox.value;
-    sendChannel.send(message);
-    
-    messageInputBox.value = "";
-    messageInputBox.focus();
+    if (sendChannel && sendChannel.readyState === "open") {
+        const message = messageInputBox.value;
+        sendChannel.send(message);
+        
+        messageInputBox.value = "";
+        messageInputBox.focus();
+    } else {
+        console.error("Cannot send message. Data channel is not open or not available.");
+    }
 }
 
 document.getElementById("add-answer").addEventListener("click", setAnswer);
