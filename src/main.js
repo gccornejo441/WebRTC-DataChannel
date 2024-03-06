@@ -113,6 +113,17 @@ function sendMessage() {
     }
 }
 
+function copyToClipboard(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    textarea.select();
+    document.execCommand('copy');
+}
+
+
+document.getElementById('copy-offer-sdp').addEventListener('click', () => copyToClipboard('offer-sdp'));
+document.getElementById('copy-answer-sdp').addEventListener('click', () => copyToClipboard('answer-sdp'));
+
+
 document.getElementById("add-answer").addEventListener("click", setAnswer);
 document.getElementById("create-answer").addEventListener("click", createAnswer);
 document.getElementById("create-offer").addEventListener("click", createOffer);

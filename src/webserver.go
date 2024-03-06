@@ -12,5 +12,5 @@ func main() {
 
 	router.Static("/static", "C:/Users/gabriel.cornejo/source/repos/VSCodeApps/Golang/WebAPI-DataChannel/src/")
 
-	router.Run(":8080") // Listen and serve on localhost:8080
+	router.Run(":8085") // Listen and serve on localhost:8080
 }
